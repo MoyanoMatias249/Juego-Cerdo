@@ -1,0 +1,141 @@
+/* base.css */
+
+body {
+  margin: 0;
+  background-color: #222; /* fondo general fuera del juego */
+  font-family: 'Arial', sans-serif;
+}
+
+:root{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+}
+
+img {
+  image-rendering: pixelated;
+}
+
+.game-wrapper {
+  position: relative;
+  width: 800px;
+  height: 500px;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 2px solid #222;
+}
+
+.player-wrapper {
+  position: absolute;
+  z-index: 1; /* por encima del fondo */
+}
+
+
+/* Avión del jugador */
+.plane {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  z-index: 1;
+  transition: left 0.05s linear, top 0.05s linear;
+}
+
+/* Hélice animada */
+.propeller {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  z-index: 2;
+}
+
+/* Cerdito encima del avión */
+.pig {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  z-index: 3;
+}
+
+.bullet{
+  z-index: 4;
+}
+
+/* Fondo del juego */
+.background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  z-index: 1;
+}
+
+.background-wrapper {
+  position: absolute;
+  width: 800px;
+  height: 500px;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+
+.background-overlay {
+  position: absolute;
+  width: 800px;
+  height: 500px;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.sky, .water {
+  position: absolute;
+  top: 0;
+  width: 800px;
+  height: 500px;
+  z-index: 0;
+}
+
+
+.flipped {
+  transform: scaleX(-1);
+}
+
+.water-overlay {
+  position: absolute;
+  top: 0;
+  width: 800px;
+  height: 500px;
+  pointer-events: none;
+}
+
+.sun {
+  position: absolute;
+  top: -60px;
+  width: 122px;
+  height: 120px;
+  z-index: 3;
+  filter: drop-shadow(0 0 1em #ffb300);
+  opacity: .4;
+}
+
+.cloud {
+  position: absolute;
+  width: 177px;
+  height: 91px;
+  opacity: .6;
+  pointer-events: none;
+  z-index: 0;
+  animation: floatCloud 6s ease-in-out infinite;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
+}
+
+@keyframes floatCloud {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(4px); }
+  100% { transform: translateY(0px); }
+}
