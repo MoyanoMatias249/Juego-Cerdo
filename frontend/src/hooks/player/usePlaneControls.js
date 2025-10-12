@@ -1,4 +1,3 @@
-// src/hooks/player/usePlaneControls.js
 import { useEffect, useState } from 'react';
 
 import planeSide from '../../assets/sprites-player/plane-side.png';
@@ -8,12 +7,14 @@ import planeTop from '../../assets/sprites-player/plane-top.png';
 import planeTopLeft from '../../assets/sprites-player/plane-top-left.png';
 import planeTopRight from '../../assets/sprites-player/plane-top-right.png';
 
-function usePlaneControls(planeRef, viewMode) {
+function usePlaneControls(planeRef, viewMode, isBlocked = false) {
   const [keys, setKeys] = useState({});
   const [planeImage, setPlaneImage] = useState(viewMode === 'horizontal' ? planeSide : planeTop);
   const [propellerFrame, setPropellerFrame] = useState(0);
 
   useEffect(() => {
+    if (isBlocked) return;
+
     const down = (e) => setKeys(prev => ({ ...prev, [e.code]: true }));
     const up = (e) => setKeys(prev => ({ ...prev, [e.code]: false }));
     window.addEventListener('keydown', down);
@@ -22,9 +23,11 @@ function usePlaneControls(planeRef, viewMode) {
       window.removeEventListener('keydown', down);
       window.removeEventListener('keyup', up);
     };
-  }, []);
+  }, [isBlocked]);
 
   useEffect(() => {
+    if (isBlocked) return;
+
     let animationId;
     const move = () => {
       const plane = planeRef.current;
@@ -36,7 +39,7 @@ function usePlaneControls(planeRef, viewMode) {
       let newLeft = left;
       let newTop = top;
 
-      const speed = 5;
+      const speed = 6;
 
       if (keys.ArrowLeft && left > 0) newLeft -= speed;
       if (keys.ArrowRight && left < 800 - 98) newLeft += speed;
@@ -46,7 +49,6 @@ function usePlaneControls(planeRef, viewMode) {
       plane.style.left = `${newLeft}px`;
       plane.style.top = `${newTop}px`;
 
-      // Dirección visual
       let newPlaneImage = viewMode === 'horizontal' ? planeSide : planeTop;
 
       if (viewMode === 'horizontal') {
@@ -63,7 +65,7 @@ function usePlaneControls(planeRef, viewMode) {
     };
     move();
     return () => cancelAnimationFrame(animationId);
-  }, [keys, viewMode]);
+  }, [keys, viewMode, isBlocked]);
 
   useEffect(() => {
     const interval = setInterval(() => {

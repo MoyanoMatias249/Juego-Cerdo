@@ -2,8 +2,11 @@
 
 import pigFront1 from '../assets/sprites-player/pig-front-1.png';
 import pigFront2 from '../assets/sprites-player/pig-front-2.png';
+import pigFront3 from '../assets/sprites-player/pig-front-3.png';
 import pigSide1 from '../assets/sprites-player/pig-side-1.png';
 import pigSide2 from '../assets/sprites-player/pig-side-2.png';
+import pigSide3 from '../assets/sprites-player/pig-side-3.png';
+
 
 import propellerSide1 from '../assets/sprites-player/propeller-side-1.png';
 import propellerSide2 from '../assets/sprites-player/propeller-side-2.png';
@@ -22,10 +25,12 @@ import propellerTop6 from '../assets/sprites-player/propeller-front-6.png';
 const propellerSide = [propellerSide1, propellerSide2, propellerSide3, propellerSide4, propellerSide5, propellerSide6];
 const propellerTop = [propellerTop1, propellerTop2, propellerTop3, propellerTop4, propellerTop5, propellerTop6];
 
-function Player({ viewMode, planeRef, propellerRef, propellerFrame, isAngry, planeImage, showHitboxes }) {
+function Player({ viewMode, planeRef, propellerRef, propellerFrame, isAngry, planeImage, showHitboxes, blink, immune }) {
+  const planeFilter = immune ? 'drop-shadow(0 0 .5em rgba(124, 124, 124, 1))' : 'none';
   const pigImage = viewMode === 'horizontal'
-    ? (isAngry ? pigSide2 : pigSide1)
-    : (isAngry ? pigFront2 : pigFront1);
+    ? (blink ? pigSide3 : isAngry ? pigSide2 :  pigSide1)
+    : (blink ? pigFront3 : isAngry ? pigFront2 :  pigFront1);
+    
 
   const propellerImage = viewMode === 'horizontal'
     ? propellerSide[propellerFrame]
@@ -64,6 +69,8 @@ function Player({ viewMode, planeRef, propellerRef, propellerFrame, isAngry, pla
           position: 'absolute',
           left: 0,
           top: viewMode === 'horizontal' ? 48 : 0,
+          opacity: blink ? 0.6 : 1,
+          transition: 'opacity 0.5s',
         }}
       />
 
@@ -78,6 +85,8 @@ function Player({ viewMode, planeRef, propellerRef, propellerFrame, isAngry, pla
           position: 'absolute',
           left: viewMode === 'horizontal' ? 10 : 10,
           top: viewMode === 'horizontal' ? 12 : 12,
+          opacity: blink ? 0.6 : 1,
+          transition: 'opacity 0.5s',
         }}
       />
 
@@ -92,7 +101,9 @@ function Player({ viewMode, planeRef, propellerRef, propellerFrame, isAngry, pla
           height: `${propellerSize.height}px`,
           position: 'absolute',
           left: viewMode === 'horizontal' ? 98 : 36,
-          top: viewMode === 'horizontal' ? 62 : 96,
+          top: viewMode === 'horizontal' ? 62 : 96,   
+          opacity: blink ? 0.6 : 1,
+          transition: 'opacity 0.5s',
         }}
       />
 
@@ -102,10 +113,10 @@ function Player({ viewMode, planeRef, propellerRef, propellerFrame, isAngry, pla
           className="collision-box"
           style={{
             position: 'absolute',
-            left: '14px',
-            top: '20px',
-            width: '70px',
-            height: '70px',
+            left: '16px',
+            top: '16px',
+            width: '66px',
+            height: '66px',
             border: '2px dashed red',
             backgroundColor: 'rgba(255, 0, 0, 0.1)',
             zIndex: 10,

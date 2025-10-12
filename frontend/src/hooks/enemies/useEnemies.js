@@ -1,15 +1,30 @@
 import { useEffect, useState } from 'react';
 import { createBasicEnemy, updateBasicEnemy } from './useEnemiesBasic';
+import { createWolfEnemy, updateWolfEnemy } from './useEnemiesWolf';
+import { createSharkEnemy, updateSharkEnemy } from './useEnemiesShark';
+import { createBoatWolfEnemy, updateBoatWolfEnemy } from './useEnemiesBoatWolf';
 
 /*
   * Maneja el estado y movimiento de todos los enemigos activos.
 */
-function useEnemies(isGameActive) {
+function useEnemies(isGameActive, playerRef) {
   const [enemies, setEnemies] = useState([]);
   const [enemyPropellerFrame, setEnemyPropellerFrame] = useState(0);
 
   const updaterMap = {
     basic: updateBasicEnemy,
+    wolf: updateWolfEnemy,
+    shark: updateSharkEnemy,
+   'boat-wolf': updateBoatWolfEnemy,
+  };
+
+  const getPlayerPosition = () => {
+    const el = playerRef?.current;
+    if (!el) return { x: 400, y: 250 }; // posición por defecto
+    return {
+      x: parseInt(el.style.left || '400'),
+      y: parseInt(el.style.top || '250'),
+    };
   };
 
   useEffect(() => {
@@ -17,11 +32,12 @@ function useEnemies(isGameActive) {
     let animationId;
 
     const animate = () => {
+      const { x: playerX, y: playerY } = getPlayerPosition();
       setEnemies((prev) =>
         prev
           .map((e) => {
-            const updater = updaterMap[e.type];
-            return updater ? updater(e) : e;
+             const updater = updaterMap[e.type];
+              return updater ? updater(e, playerX, playerY) : e;
           })
           .filter((e) => e !== null)
       );
@@ -36,6 +52,9 @@ function useEnemies(isGameActive) {
     const newEnemies = [];
     for (let i = 0; i < count; i++) {
       if (type === 'basic') newEnemies.push(createBasicEnemy());
+      if (type === 'wolf') newEnemies.push(createWolfEnemy());
+      if (type === 'shark') newEnemies.push(createSharkEnemy());
+      if (type === 'boat-wolf') newEnemies.push(createBoatWolfEnemy());
     }
     setEnemies((prev) => [...prev, ...newEnemies]);
   };
@@ -47,7 +66,7 @@ function useEnemies(isGameActive) {
     return () => clearInterval(interval);
   }, []);
 
-  return [enemies, setEnemies, spawnEnemies, enemyPropellerFrame];
+  return [enemies, setEnemies, spawnEnemies, enemyPropellerFrame, ];
 }
 
 export default useEnemies;

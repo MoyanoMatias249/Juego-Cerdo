@@ -1,31 +1,54 @@
 import { useEffect, useState } from 'react';
-
 import bulletSprite from '../../assets/sprites-player/bullet.png';
 
-function useBullets(keys, planeRef, viewMode, isGameActive) {
+function useBullets(keys = {}, planeRef, viewMode, isGameActive) {
   const [bullets, setBullets] = useState([]);
   const [isHolding, setIsHolding] = useState(false);
 
+  // Manejo de disparo inicial
   useEffect(() => {
-    if (!keys || typeof keys.Space === 'undefined') return;
+    const spacePressed = keys.Space ?? false;
 
-    if (keys.Space && !isHolding) {
+    if (spacePressed && !isHolding) {
       setIsHolding(true);
       shootBullet();
-    } else if (!keys.Space && isHolding) {
+    } else if (!spacePressed && isHolding) {
       setIsHolding(false);
     }
-  }, [keys?.Space]);
+  }, [keys.Space, isHolding]);
 
+  // Disparo continuo
   useEffect(() => {
-    if (!isHolding) return;
+    if (!isHolding || !isGameActive) return;
 
     const interval = setInterval(() => {
       shootBullet();
     }, 150);
 
     return () => clearInterval(interval);
-  }, [isHolding, viewMode]);
+  }, [isHolding, viewMode, isGameActive]);
+
+  // Movimiento de balas
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!isGameActive) return;
+
+      setBullets(prev =>
+        prev
+          .map(b => ({
+            ...b,
+            x: b.direction === 'right' ? b.x + 10 : b.x,
+            y: b.direction === 'down' ? b.y + 10 : b.y,
+          }))
+          .filter(b =>
+            (b.direction === 'right' && b.x < 820) ||
+            (b.direction === 'down' && b.y < 520)
+          )
+      );
+    }, 16);
+
+    return () => clearInterval(interval);
+  }, [isGameActive]);
 
   const shootBullet = () => {
     const plane = planeRef.current;
@@ -34,63 +57,31 @@ function useBullets(keys, planeRef, viewMode, isGameActive) {
     const left = parseInt(plane.style.left || '100');
     const top = parseInt(plane.style.top || '200');
 
-    let bulletsToShoot = [];
+    const damage = 1;
+    const piercing = false;
 
-    if (viewMode === 'horizontal') {
-      // Disparo horizontal: dos balas una arriba de la otra
-      bulletsToShoot.push({
-        x: left + 104,
-        y: top + 65,
-        sprite: bulletSprite,
-        direction: 'right'
-      });
-      bulletsToShoot.push({
-        x: left + 104,
-        y: top + 75,
-        sprite: bulletSprite,
-        direction: 'right'
-      });
-    } else {
-      // Disparo vertical: dos balas una al costado de la otra
-      bulletsToShoot.push({
-        x: left + 41,
-        y: top + 102,
-        sprite: bulletSprite,
-        direction: 'down'
-      });
-      bulletsToShoot.push({
-        x: left + 51,
-        y: top + 102,
-        sprite: bulletSprite,
-        direction: 'down'
-      });
-    }
+    const bulletsToShoot = viewMode === 'horizontal'
+      ? [
+          { x: left + 104, y: top + 65, direction: 'right' },
+          { x: left + 104, y: top + 75, direction: 'right' }
+        ]
+      : [
+          { x: left + 41, y: top + 102, direction: 'down' },
+          { x: left + 51, y: top + 102, direction: 'down' }
+        ];
 
-    setBullets(prev => [...prev, ...bulletsToShoot]);
+    const formatted = bulletsToShoot.map(b => ({
+      ...b,
+      sprite: bulletSprite,
+      damage,
+      piercing,
+      hitEnemies: new Set()
+    }));
+
+    setBullets(prev => [...prev, ...formatted]);
   };
 
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!isGameActive) return;
-      setBullets(prev =>
-        prev
-          .map(b => ({
-            ...b,
-            x: b.direction === 'right' ? b.x + 10 : b.x,
-            y: b.direction === 'down' ? b.y + 10 : b.y
-            }))
-
-          .filter(b =>
-            (b.direction === 'right' && b.x < 820) || 
-            (b.direction === 'down' && b.y < 520)     
-          )
-      );
-    }, 16);
-    return () => clearInterval(interval);
-  }, []);
-
-  return [bullets, setBullets, isGameActive];
+  return [bullets, setBullets];
 }
 
 export default useBullets;
