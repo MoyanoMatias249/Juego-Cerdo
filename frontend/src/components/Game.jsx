@@ -24,6 +24,7 @@ import useEnemyBullets from '../hooks/enemies/useEnemyBullets';
 import EnemyBullets from './enemies/EnemyBullets';
 
 import GameStats from './ui/GameStats';
+import useMuzzleFlashAnimation from '../hooks/player/useMuzzleFlashAnimation';
 
 function Game() {
   const planeRef = useRef(null);
@@ -31,6 +32,7 @@ function Game() {
   const [isAngry, setIsAngry] = useState(false);
   const [viewMode, setViewMode] = useState('horizontal');
   const [showHitboxes, setShowHitboxes] = useState(false);
+  const [useAltSkin, setUseAltSkin] = useState(false);
 
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [score, setScore] = useState(0);
@@ -47,10 +49,11 @@ function Game() {
     keys,
     planeImage,
     propellerFrame
-  } = usePlaneControls(planeRef, viewMode, isGameOver);
+  } = usePlaneControls(planeRef, viewMode, isGameOver, useAltSkin);
+  
+  const [muzzleSprite, triggerMuzzleFlash] = useMuzzleFlashAnimation(viewMode);
 
-
-  const [bullets, setBullets] = useBullets(keys, planeRef, viewMode, isGameActive);
+  const [bullets, setBullets] = useBullets(keys, planeRef, viewMode, isGameActive, triggerMuzzleFlash);
   const [enemies, setEnemies, spawnEnemies, enemyPropellerFrame] = useEnemies(isGameActive, planeRef);
   const [enemyBullets, setEnemyBullets] = useEnemyBullets(enemies);
 
@@ -65,7 +68,6 @@ function Game() {
       });
     }, 3000);
   }, planeRef);
-
 
   usePlayerCollision(enemies, enemyBullets, planeRef, isGameActive, triggerDamage);
   useEnemiesCollisions(bullets, enemies, setBullets, setEnemies, isGameActive, setScore);
@@ -83,6 +85,7 @@ function Game() {
     const handleKey = (e) => {
       if (e.key === 'q') toggleView();
       if (e.key === 'f') setIsAngry(prev => !prev);
+      if (e.key === 'e') setUseAltSkin(prev => !prev);
       if (e.key === 'Tab') {
       e.preventDefault(); // evita cambiar de foco
       setShowHitboxes(prev => !prev);
@@ -204,6 +207,7 @@ function Game() {
         showHitboxes={showHitboxes}
         blink={blink}
         immune={isImmune}
+        muzzleSprite={muzzleSprite}
       />
       {!isGameOver && <Bullets bullets={bullets} /> }
 

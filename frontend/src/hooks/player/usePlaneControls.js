@@ -7,7 +7,14 @@ import planeTop from '../../assets/sprites-player/plane-top.png';
 import planeTopLeft from '../../assets/sprites-player/plane-top-left.png';
 import planeTopRight from '../../assets/sprites-player/plane-top-right.png';
 
-function usePlaneControls(planeRef, viewMode, isBlocked = false) {
+import planeSide2 from '../../assets/sprites-player/plane-side-new.png';
+import planeSideUp2 from '../../assets/sprites-player/plane-side-new-up.png';
+import planeSideDown2 from '../../assets/sprites-player/plane-side-new-down.png';
+import planeTop2 from '../../assets/sprites-player/plane-top-new.png';
+import planeTopLeft2 from '../../assets/sprites-player/plane-top-new-left.png';
+import planeTopRight2 from '../../assets/sprites-player/plane-top-new-right.png';
+
+function usePlaneControls(planeRef, viewMode, isBlocked = false, useAltSkin = false) {
   const [keys, setKeys] = useState({});
   const [planeImage, setPlaneImage] = useState(viewMode === 'horizontal' ? planeSide : planeTop);
   const [propellerFrame, setPropellerFrame] = useState(0);
@@ -49,15 +56,18 @@ function usePlaneControls(planeRef, viewMode, isBlocked = false) {
       plane.style.left = `${newLeft}px`;
       plane.style.top = `${newTop}px`;
 
-      let newPlaneImage = viewMode === 'horizontal' ? planeSide : planeTop;
+      let newPlaneImage;
 
       if (viewMode === 'horizontal') {
-        if (keys.ArrowUp) newPlaneImage = planeSideUp;
-        else if (keys.ArrowDown) newPlaneImage = planeSideDown;
+        if (keys.ArrowUp) newPlaneImage = useAltSkin ? planeSideUp2 : planeSideUp;
+        else if (keys.ArrowDown) newPlaneImage = useAltSkin ? planeSideDown2 : planeSideDown;
+        else newPlaneImage = useAltSkin ? planeSide2 : planeSide;
       } else {
-        if (keys.ArrowLeft) newPlaneImage = planeTopLeft;
-        else if (keys.ArrowRight) newPlaneImage = planeTopRight;
+        if (keys.ArrowLeft) newPlaneImage = useAltSkin ? planeTopLeft2 : planeTopLeft;
+        else if (keys.ArrowRight) newPlaneImage = useAltSkin ? planeTopRight2 : planeTopRight;
+        else newPlaneImage = useAltSkin ? planeTop2 : planeTop;
       }
+
 
       setPlaneImage(newPlaneImage);
 
@@ -73,6 +83,12 @@ function usePlaneControls(planeRef, viewMode, isBlocked = false) {
     }, 100);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (isBlocked) {
+      setKeys({}); // limpia teclas activas
+    }
+  }, [isBlocked]);
 
   return {
     keys,

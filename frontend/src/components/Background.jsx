@@ -50,12 +50,12 @@ function Background({ isGameActive }) {
   }, [isGameActive]);
 
   useEffect(() => {
-    const fadeTimeout = setTimeout(() => {
-      setShowIntro(false); // oculta completamente después del fade
-    }, 5500); // 4s visible + 1.5s fade
+  const fadeTimeout = setTimeout(() => {
+    setShowIntro(false); // oculta completamente después del fade
+  }, 5500); // 4s visible + 1.5s fade
 
-    return () => clearTimeout(fadeTimeout);
-  }, []);
+  return () => clearTimeout(fadeTimeout);
+}, []);
 
   return (
     <>

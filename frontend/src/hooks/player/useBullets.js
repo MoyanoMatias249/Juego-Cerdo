@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import bulletSprite from '../../assets/sprites-player/bullet.png';
 
-function useBullets(keys = {}, planeRef, viewMode, isGameActive) {
+function useBullets(keys = {}, planeRef, viewMode, isGameActive, triggerMuzzleFlash) {
   const [bullets, setBullets] = useState([]);
   const [isHolding, setIsHolding] = useState(false);
 
@@ -14,7 +14,7 @@ function useBullets(keys = {}, planeRef, viewMode, isGameActive) {
       shootBullet();
     } else if (!spacePressed && isHolding) {
       setIsHolding(false);
-    }
+    } 
   }, [keys.Space, isHolding]);
 
   // Disparo continuo
@@ -27,6 +27,13 @@ function useBullets(keys = {}, planeRef, viewMode, isGameActive) {
 
     return () => clearInterval(interval);
   }, [isHolding, viewMode, isGameActive]);
+
+  useEffect(() => {
+    if (!isGameActive) {
+      setIsHolding(false); // cancela disparo
+    }
+  }, [isGameActive]);
+
 
   // Movimiento de balas
   useEffect(() => {
@@ -77,7 +84,7 @@ function useBullets(keys = {}, planeRef, viewMode, isGameActive) {
       piercing,
       hitEnemies: new Set()
     }));
-
+    triggerMuzzleFlash();
     setBullets(prev => [...prev, ...formatted]);
   };
 

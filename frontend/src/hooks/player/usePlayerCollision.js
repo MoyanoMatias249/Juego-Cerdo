@@ -39,7 +39,7 @@ function usePlayerCollision(enemies, enemyBullets, planeRef, isGameActive, trigg
         }
       });
 
-      enemyBullets.forEach((bullet) => {
+      enemyBullets.forEach((bullet) => {  
         if (damagedThisFrame) return;
 
         const hitbox = getEnemyHitbox(bullet);

@@ -25,7 +25,7 @@ import propellerTop6 from '../assets/sprites-player/propeller-front-6.png';
 const propellerSide = [propellerSide1, propellerSide2, propellerSide3, propellerSide4, propellerSide5, propellerSide6];
 const propellerTop = [propellerTop1, propellerTop2, propellerTop3, propellerTop4, propellerTop5, propellerTop6];
 
-function Player({ viewMode, planeRef, propellerRef, propellerFrame, isAngry, planeImage, showHitboxes, blink, immune }) {
+function Player({ viewMode, planeRef, propellerRef, propellerFrame, isAngry, planeImage, showHitboxes, blink, immune, muzzleSprite }) {
   const planeFilter = immune ? 'drop-shadow(0 0 .5em rgba(124, 124, 124, 1))' : 'none';
   const pigImage = viewMode === 'horizontal'
     ? (blink ? pigSide3 : isAngry ? pigSide2 :  pigSide1)
@@ -106,6 +106,22 @@ function Player({ viewMode, planeRef, propellerRef, propellerFrame, isAngry, pla
           transition: 'opacity 0.5s',
         }}
       />
+
+      {muzzleSprite && (
+        <img
+          src={muzzleSprite}
+          alt="muzzle-flash"
+          style={{
+            position: 'absolute',
+            left: viewMode === 'horizontal' ? 102 : 28,
+            top: viewMode === 'horizontal' ? 52 : 102,
+            width: viewMode === 'horizontal' ? 22 : 44,
+            height: viewMode === 'horizontal' ? 44 : 22,
+            pointerEvents: 'none',
+            zIndex: 0,
+          }}
+        />
+      )}
 
       {/* Área de colisión visible para testeo */}
       {showHitboxes && (

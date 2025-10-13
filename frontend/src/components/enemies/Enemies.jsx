@@ -3,7 +3,6 @@ import EnemyWolf from './EnemyWolf-1';
 import EnemyShark from './EnemyShark';
 import EnemyBoatWolf from './EnemyWolf-2';
 
-
 function Enemies({ enemies, enemyPropellerFrame, showHitboxes }) {
   return (
     <>
