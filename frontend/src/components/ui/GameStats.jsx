@@ -1,4 +1,8 @@
+import { getPlayerData } from '../../utils/playerData';
+
 function GameStats({ timeElapsed, score }) {
+  const player = getPlayerData();
+
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -18,6 +22,7 @@ function GameStats({ timeElapsed, score }) {
       padding: '4px 8px',
       borderRadius: '6px'
     }}>
+      <div>Jugador: {player.name}</div>
       <div>Tiempo: {formatTime(timeElapsed)}</div>
       <div>Puntos: {score}</div>
     </div>

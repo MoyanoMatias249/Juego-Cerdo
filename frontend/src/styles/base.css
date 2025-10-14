@@ -7,9 +7,6 @@ body {
 }
 
 :root{
-  display: flex;
-  justify-content: center;
-  align-items: center;
   background-color: transparent;
 }
 
@@ -179,4 +176,51 @@ img {
   100%{
     opacity: 0;
   }
+}
+
+@keyframes fadeInGameOver {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.mobile-controls {
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  z-index: 9999;
+  transform: scale(1.2);
+}
+
+.left-controls, .right-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px;
+}
+
+.left-controls button,
+.right-controls button {
+  font-size: 24px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background-color: #eee;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  cursor: pointer;
+}
+
+.left-controls div {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
 }

@@ -9,7 +9,7 @@ import Plane from './Player';
 import Bullets from './Bullets';
 import useLives from '../hooks/player/useLives';
 import LivesDisplay from './ui/LivesDisplay';
-import GameOverScreen from './ui/GameOverScreen';
+import GameOverScreen from './ui/GameOverScreen'; 
 
 import useClouds from '../hooks/useClouds';
 import Clouds from './Clouds';
@@ -26,6 +26,8 @@ import EnemyBullets from './enemies/EnemyBullets';
 import GameStats from './ui/GameStats';
 import useMuzzleFlashAnimation from '../hooks/player/useMuzzleFlashAnimation';
 
+import MobileControls from './ui/MobileControls';
+
 function Game() {
   const planeRef = useRef(null);
   const propellerRef = useRef(null);
@@ -33,6 +35,7 @@ function Game() {
   const [viewMode, setViewMode] = useState('horizontal');
   const [showHitboxes, setShowHitboxes] = useState(false);
   const [useAltSkin, setUseAltSkin] = useState(false);
+  const [showGameOver, setShowGameOver] = useState(false);
 
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [score, setScore] = useState(0);
@@ -58,16 +61,18 @@ function Game() {
   const [enemyBullets, setEnemyBullets] = useEnemyBullets(enemies);
 
   const { lives, isImmune, blink, triggerDamage, setLives } = useLives(() => {
-    // Separar el cambio de estado del reinicio
     setIsGameOver(true);
-
-    // Esperar al próximo ciclo de render antes de reiniciar
     setTimeout(() => {
-      requestAnimationFrame(() => {
-        resetGame();
-      });
-    }, 3000);
+      setIsPaused(true);
+      setShowGameOver(true); // mostrar Game Over después de 1 segundo
+    }, 1000);
   }, planeRef);
+
+  useEffect(() => {
+    if(isGameOver){
+      setIsPaused(true);
+    }
+  });
 
   usePlayerCollision(enemies, enemyBullets, planeRef, isGameActive, triggerDamage);
   useEnemiesCollisions(bullets, enemies, setBullets, setEnemies, isGameActive, setScore);
@@ -79,6 +84,29 @@ function Game() {
   const toggleView = () => {
     setViewMode(prev => prev === 'horizontal' ? 'vertical' : 'horizontal');
   };
+
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const { innerWidth: w, innerHeight: h } = window;
+      setIsMobile(h > w); // 📱 si la altura es mayor que el ancho, es móvil
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    window.addEventListener('orientationchange', checkMobile);
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('orientationchange', checkMobile);
+    };
+  }, []);
+
+
+  const handleMobileAction = (key) => {
+    const event = new KeyboardEvent('keydown', { code: key, key });
+    window.dispatchEvent(event);
+  };
+
 
   useEffect(() => {
     if (isGameOver || !isGameActive) return;
@@ -165,6 +193,7 @@ function Game() {
     setClouds([]);
     setViewMode('horizontal');
     setIsPaused(false);
+    setShowGameOver(false);
     setTimeElapsed(0);
     setScore(0);
     setResetCount(prev => prev + 1); // trigger para bandera
@@ -191,8 +220,20 @@ function Game() {
         overflow: 'hidden'
       }}
     >
-      {isGameOver && <GameOverScreen />}
-      
+
+      {isMobile && !isGameOver && (
+        <MobileControls onAction={handleMobileAction} />
+      )}
+
+      {showGameOver && (
+        <GameOverScreen
+          score={score}
+          timeElapsed={timeElapsed}
+          onRetry={resetGame}
+          onReload={() => window.location.reload()}
+        />
+      )}
+            
       <Clouds clouds={clouds} />
       <Background isGameActive={isGameActive} />
       <LivesDisplay lives={lives} />
