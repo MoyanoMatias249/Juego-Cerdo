@@ -1,3 +1,4 @@
+// src/hooks/enemies/useEnemiesShark.js
 /*
   * Define el comportamiento del tiburón emboscador.
   * Nada como aleta, luego salta verticalmente y cae.

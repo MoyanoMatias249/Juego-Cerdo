@@ -1,3 +1,4 @@
+// src/hooks/player/useMuzzleFlashAnimation.js
 import { useState, useEffect } from 'react';
 
 import flashFront1 from '../../assets/sprites-player/explosion-bullet-front-1.png';

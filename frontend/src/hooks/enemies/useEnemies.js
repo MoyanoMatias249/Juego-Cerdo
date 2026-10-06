@@ -1,29 +1,35 @@
+// src/hooks/enemies/useEnemies.js
 import { useEffect, useState } from 'react';
-import { createBasicEnemy, updateBasicEnemy } from './useEnemiesBasic';
-import { createWolfEnemy, updateWolfEnemy } from './useEnemiesWolf';
-import { createSharkEnemy, updateSharkEnemy } from './useEnemiesShark';
-import { createBoatWolfEnemy, updateBoatWolfEnemy } from './useEnemiesBoatWolf';
+import { createBasicEnemy,      updateBasicEnemy      } from './useEnemiesBasic';
+import { createWolfEnemy,       updateWolfEnemy       } from './useEnemiesWolf';
+import { createSharkEnemy,      updateSharkEnemy      } from './useEnemiesShark';
+import { createBoatWolfEnemy,   updateBoatWolfEnemy   } from './useEnemiesBoatWolf';
+import { createShipWolfBoss,    updateShipWolfBoss    } from './useEnemiesShipWolf';
+import { createBulletWolfEnemy, updateBulletWolfEnemy } from './useEnemiesBulletWolf';
+import { createRedSharkEnemy,   updateRedSharkEnemy   } from './useEnemiesRedShark';
+import { createAirShipBoss,     updateAirShipBoss     } from './useEnemiesAirShipBoss';
 
-/*
-  * Maneja el estado y movimiento de todos los enemigos activos.
-*/
 function useEnemies(isGameActive, playerRef) {
-  const [enemies, setEnemies] = useState([]);
+  const [enemies,             setEnemies]             = useState([]);
   const [enemyPropellerFrame, setEnemyPropellerFrame] = useState(0);
 
   const updaterMap = {
-    basic: updateBasicEnemy,
-    wolf: updateWolfEnemy,
-    shark: updateSharkEnemy,
-   'boat-wolf': updateBoatWolfEnemy,
+    basic:         updateBasicEnemy,
+    wolf:          updateWolfEnemy,
+    shark:         updateSharkEnemy,
+    'boat-wolf':   updateBoatWolfEnemy,
+    'ship-wolf':   updateShipWolfBoss,
+    'bullet-wolf': updateBulletWolfEnemy,
+    'red-shark':   updateRedSharkEnemy,
+    'air-ship':    updateAirShipBoss,
   };
 
   const getPlayerPosition = () => {
     const el = playerRef?.current;
-    if (!el) return { x: 400, y: 250 }; // posición por defecto
+    if (!el) return { x: 400, y: 250 };
     return {
       x: parseInt(el.style.left || '400'),
-      y: parseInt(el.style.top || '250'),
+      y: parseInt(el.style.top  || '250'),
     };
   };
 
@@ -36,8 +42,8 @@ function useEnemies(isGameActive, playerRef) {
       setEnemies((prev) =>
         prev
           .map((e) => {
-             const updater = updaterMap[e.type];
-              return updater ? updater(e, playerX, playerY) : e;
+            const updater = updaterMap[e.type];
+            return updater ? updater(e, playerX, playerY) : e;
           })
           .filter((e) => e !== null)
       );
@@ -51,10 +57,14 @@ function useEnemies(isGameActive, playerRef) {
   const spawnEnemies = (type, count) => {
     const newEnemies = [];
     for (let i = 0; i < count; i++) {
-      if (type === 'basic') newEnemies.push(createBasicEnemy());
-      if (type === 'wolf') newEnemies.push(createWolfEnemy());
-      if (type === 'shark') newEnemies.push(createSharkEnemy());
-      if (type === 'boat-wolf') newEnemies.push(createBoatWolfEnemy());
+      if (type === 'basic')       newEnemies.push(createBasicEnemy());
+      if (type === 'wolf')        newEnemies.push(createWolfEnemy());
+      if (type === 'shark')       newEnemies.push(createSharkEnemy());
+      if (type === 'boat-wolf')   newEnemies.push(createBoatWolfEnemy());
+      if (type === 'ship-wolf')   newEnemies.push(createShipWolfBoss());
+      if (type === 'bullet-wolf') newEnemies.push(createBulletWolfEnemy());
+      if (type === 'red-shark')   newEnemies.push(createRedSharkEnemy());
+      if (type === 'air-ship')    newEnemies.push(createAirShipBoss());
     }
     setEnemies((prev) => [...prev, ...newEnemies]);
   };
@@ -66,7 +76,7 @@ function useEnemies(isGameActive, playerRef) {
     return () => clearInterval(interval);
   }, []);
 
-  return [enemies, setEnemies, spawnEnemies, enemyPropellerFrame, ];
+  return [enemies, setEnemies, spawnEnemies, enemyPropellerFrame];
 }
 
 export default useEnemies;

@@ -1,82 +1,104 @@
+// src/hooks/player/usePlaneControls.js
 import { useEffect, useState } from 'react';
 
-import planeSide from '../../assets/sprites-player/plane-side.png';
-import planeSideUp from '../../assets/sprites-player/plane-side-up.png';
-import planeSideDown from '../../assets/sprites-player/plane-side-down.png';
-import planeTop from '../../assets/sprites-player/plane-top.png';
-import planeTopLeft from '../../assets/sprites-player/plane-top-left.png';
-import planeTopRight from '../../assets/sprites-player/plane-top-right.png';
+import planeSide     from '../../assets/sprites-player/red-plane-side.png';
+import planeSideUp   from '../../assets/sprites-player/red-plane-side-up.png';
+import planeSideDown from '../../assets/sprites-player/red-plane-side-down.png';
+import planeTop      from '../../assets/sprites-player/red-plane-top.png';
+import planeTopLeft  from '../../assets/sprites-player/red-plane-top-left.png';
+import planeTopRight from '../../assets/sprites-player/red-plane-top-right.png';
 
-import planeSide2 from '../../assets/sprites-player/plane-side-new.png';
-import planeSideUp2 from '../../assets/sprites-player/plane-side-new-up.png';
-import planeSideDown2 from '../../assets/sprites-player/plane-side-new-down.png';
-import planeTop2 from '../../assets/sprites-player/plane-top-new.png';
-import planeTopLeft2 from '../../assets/sprites-player/plane-top-new-left.png';
-import planeTopRight2 from '../../assets/sprites-player/plane-top-new-right.png';
+function getDirections(keys) {
+  return {
+    up:    keys['KeyW'] || keys['ArrowUp'],
+    down:  keys['KeyS'] || keys['ArrowDown'],
+    left:  keys['KeyA'] || keys['ArrowLeft'],
+    right: keys['KeyD'] || keys['ArrowRight'],
+  };
+}
 
-function usePlaneControls(planeRef, viewMode, isBlocked = false, useAltSkin = false) {
-  const [keys, setKeys] = useState({});
-  const [planeImage, setPlaneImage] = useState(viewMode === 'horizontal' ? planeSide : planeTop);
+/*
+  isBlocked: true cuando el juego está pausado o en game over.
+  Al estar bloqueado:
+    - No se registran nuevas teclas.
+    - El loop de movimiento rAF no se ejecuta → el avión se congela.
+    - Las keys se limpian para que al reanudar no haya teclas "fantasma".
+*/
+function usePlaneControls(planeRef, viewMode, isBlocked = false) {
+  const [keys,          setKeys]          = useState({});
+  const [planeImage,    setPlaneImage]    = useState(viewMode === 'horizontal' ? planeSide : planeTop);
   const [propellerFrame, setPropellerFrame] = useState(0);
 
+  // Registrar teclas — solo cuando no está bloqueado
   useEffect(() => {
     if (isBlocked) return;
 
-    const down = (e) => setKeys(prev => ({ ...prev, [e.code]: true }));
+    const down = (e) => {
+      if (['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) {
+        e.preventDefault();
+      }
+      setKeys(prev => ({ ...prev, [e.code]: true }));
+    };
     const up = (e) => setKeys(prev => ({ ...prev, [e.code]: false }));
+
     window.addEventListener('keydown', down);
-    window.addEventListener('keyup', up);
+    window.addEventListener('keyup',   up);
     return () => {
       window.removeEventListener('keydown', down);
-      window.removeEventListener('keyup', up);
+      window.removeEventListener('keyup',   up);
     };
   }, [isBlocked]);
 
+  // Limpiar keys al bloquearse — evita teclas "fantasma" al reanudar
   useEffect(() => {
-    if (isBlocked) return;
+    if (isBlocked) setKeys({});
+  }, [isBlocked]);
+
+  // Loop de movimiento vía rAF — se desmonta cuando isBlocked cambia a true
+  useEffect(() => {
+    if (isBlocked) return; // ← no corre el loop si está bloqueado
 
     let animationId;
     const move = () => {
       const plane = planeRef.current;
-      if (!plane) return;
+      if (!plane) { animationId = requestAnimationFrame(move); return; }
 
       const left = parseInt(plane.style.left || '100');
-      const top = parseInt(plane.style.top || '200');
+      const top  = parseInt(plane.style.top  || '200');
+      const dir  = getDirections(keys);
+      const speed = 6.5;
 
       let newLeft = left;
-      let newTop = top;
+      let newTop  = top;
 
-      const speed = 6;
-
-      if (keys.ArrowLeft && left > 0) newLeft -= speed;
-      if (keys.ArrowRight && left < 800 - 98) newLeft += speed;
-      if (keys.ArrowUp && top > -20) newTop -= speed;
-      if (keys.ArrowDown && top < 500 - 96 - 20) newTop += speed;
+      if (dir.left  && left > 0)            newLeft -= speed;
+      if (dir.right && left < 800 - 98)     newLeft += speed;
+      if (dir.up    && top > -20)            newTop  -= speed;
+      if (dir.down  && top < 500 - 96 - 20) newTop  += speed;
 
       plane.style.left = `${newLeft}px`;
-      plane.style.top = `${newTop}px`;
+      plane.style.top  = `${newTop}px`;
 
       let newPlaneImage;
-
       if (viewMode === 'horizontal') {
-        if (keys.ArrowUp) newPlaneImage = useAltSkin ? planeSideUp2 : planeSideUp;
-        else if (keys.ArrowDown) newPlaneImage = useAltSkin ? planeSideDown2 : planeSideDown;
-        else newPlaneImage = useAltSkin ? planeSide2 : planeSide;
+        if (dir.up)        newPlaneImage = planeSideUp;
+        else if (dir.down) newPlaneImage = planeSideDown;
+        else               newPlaneImage = planeSide;
       } else {
-        if (keys.ArrowLeft) newPlaneImage = useAltSkin ? planeTopLeft2 : planeTopLeft;
-        else if (keys.ArrowRight) newPlaneImage = useAltSkin ? planeTopRight2 : planeTopRight;
-        else newPlaneImage = useAltSkin ? planeTop2 : planeTop;
+        if (dir.left)       newPlaneImage = planeTopLeft;
+        else if (dir.right) newPlaneImage = planeTopRight;
+        else                newPlaneImage = planeTop;
       }
 
-
       setPlaneImage(newPlaneImage);
-
       animationId = requestAnimationFrame(move);
     };
-    move();
-    return () => cancelAnimationFrame(animationId);
-  }, [keys, viewMode, isBlocked]);
 
+    animationId = requestAnimationFrame(move);
+    return () => cancelAnimationFrame(animationId);
+  }, [keys, viewMode, isBlocked]); // ← isBlocked en deps: se desmonta al pausar
+
+  // Animación de hélice
   useEffect(() => {
     const interval = setInterval(() => {
       setPropellerFrame(prev => (prev + 1) % 6);
@@ -84,17 +106,7 @@ function usePlaneControls(planeRef, viewMode, isBlocked = false, useAltSkin = fa
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    if (isBlocked) {
-      setKeys({}); // limpia teclas activas
-    }
-  }, [isBlocked]);
-
-  return {
-    keys,
-    planeImage,
-    propellerFrame
-  };
+  return { keys, planeImage, propellerFrame };
 }
 
 export default usePlaneControls;

@@ -2,11 +2,22 @@ import { useEffect, useRef } from 'react';
 import { getEnemyHitbox } from '../../utils/enemyHitbox';
 
 /*
-  * Detecta colisiones entre balas del jugador y enemigos.
-  * Aplica daño, elimina enemigos si su vida llega a 0,
-  * y elimina balas no perforantes al impactar.
+  Detecta colisiones entre balas del jugador y enemigos.
+  Aplica daño, elimina enemigos si su vida llega a 0,
+  dispara la animación de humo y el sonido de muerte en la posición correcta,
+  elimina balas no perforantes al impactar,
+  y notifica el daño total al sistema de bonus-heart via registerDamage.
 */
-function useEnemiesCollisions(bullets, enemies, setBullets, setEnemies, isGameActive, setScore) {
+function useEnemiesCollisions(
+  bullets,
+  enemies,
+  setBullets,
+  setEnemies,
+  isGameActive,
+  setScore,
+  triggerDeathAnim,
+  playEnemyDeath,
+) {
   const animationRef = useRef();
 
   useEffect(() => {
@@ -14,53 +25,56 @@ function useEnemiesCollisions(bullets, enemies, setBullets, setEnemies, isGameAc
 
     const checkCollisions = () => {
       const collidedBullets = new Set();
-      const damageMap = new Map();
+      const damageMap       = new Map();
 
       bullets.forEach((b, bi) => {
         enemies.forEach((e, ei) => {
           const hitbox = getEnemyHitbox(e);
           if (!hitbox) return;
 
-          const bulletX = b.x;
-          const bulletY = b.y;
-
           const overlap =
-            bulletX < hitbox.x + hitbox.width &&
-            bulletX + 8 > hitbox.x &&
-            bulletY < hitbox.y + hitbox.height &&
-            bulletY + 8 > hitbox.y;
+            b.x      < hitbox.x + hitbox.width  &&
+            b.x + 8  > hitbox.x                 &&
+            b.y      < hitbox.y + hitbox.height  &&
+            b.y + 8  > hitbox.y;
 
           if (overlap) {
             if (b.hitEnemies?.has(ei)) return;
-
             b.hitEnemies?.add(ei);
-            const currentDamage = damageMap.get(ei) || 0;
-            damageMap.set(ei, currentDamage + (b.damage || 1));
 
-            if (!b.piercing) {
-              collidedBullets.add(bi);
-            }
+            const current = damageMap.get(ei) || 0;
+            damageMap.set(ei, current + (b.damage || 1));
+
+            if (!b.piercing) collidedBullets.add(bi);
           }
         });
       });
 
-      // Aplicar daño sin romper referencias
       setEnemies((prev) => {
         const updated = [];
+
         prev.forEach((e, i) => {
-          const damage = damageMap.get(i) || 0;
+          const damage    = damageMap.get(i) || 0;
           const newHealth = e.health - damage;
 
           if (newHealth <= 0) {
+            const hitbox  = getEnemyHitbox(e);
+            const centerX = hitbox ? hitbox.x + hitbox.width  / 2 : e.x + 20;
+            const centerY = hitbox ? hitbox.y + hitbox.height / 2 : e.y + 14;
+
+            triggerDeathAnim?.(centerX, centerY);
+            playEnemyDeath?.();
+
             if (typeof e.points === 'number') {
-              setScore((prevScore) => prevScore + e.points); // ✅ suma puntos
+              setScore(prev => prev + e.points);
             }
-            return; // eliminar enemigo
+
+            return;
           }
 
           updated.push({
             ...e,
-            health: newHealth,
+            health:       newHealth,
             hitTimestamp: damage > 0 ? Date.now() : e.hitTimestamp,
           });
         });
@@ -68,9 +82,7 @@ function useEnemiesCollisions(bullets, enemies, setBullets, setEnemies, isGameAc
         return updated;
       });
 
-
-      // Eliminar balas no perforantes
-      setBullets((prev) => prev.filter((_, i) => !collidedBullets.has(i)));
+      setBullets(prev => prev.filter((_, i) => !collidedBullets.has(i)));
 
       animationRef.current = requestAnimationFrame(checkCollisions);
     };

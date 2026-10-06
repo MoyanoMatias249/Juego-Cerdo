@@ -1,3 +1,4 @@
+// src/components/Clouds.jsx
 function Clouds({ clouds }) {
   return (
     <>

@@ -1,3 +1,4 @@
+// src/hooks/enemies/useEnemiesWolf.js
 /*
   * Define el comportamiento del enemigo lobo volador.
   * Vuela en patrón sinusoidal mientras avanza en X.

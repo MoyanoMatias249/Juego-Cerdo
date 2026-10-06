@@ -1,3 +1,4 @@
+// src/components/enemies/EnemyBasic.jsx
 import planeSprite from "../../assets/sprites-enemies/enemiesBasic-side.png";
 import propeller1 from '../../assets/sprites-player/propeller-side-1.png';
 import propeller2 from '../../assets/sprites-player/propeller-side-2.png';

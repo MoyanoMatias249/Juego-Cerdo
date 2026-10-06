@@ -1,68 +1,101 @@
-import { useEffect, useRef, useState } from 'react';
+// src/hooks/player/usePlayerCollision.js
+import { useEffect, useRef } from 'react';
 import { getEnemyHitbox } from '../../utils/enemyHitbox';
 
 /*
-  * Detecta colisiones entre el avión del jugador y enemigos.
-  * Aplica daño si hay contacto y el jugador no está inmune.
+  Detecta colisiones entre el jugador, enemigos y balas enemigas.
+
+  DISEÑO CLAVE:
+  - isImmuneRef: ref sincrónico de useLives, nunca stale.
+  - triggerDamageRef: guardamos triggerDamage en un ref para que el
+    useEffect del loop rAF no necesite triggerDamage en sus deps.
+    Sin esto, si triggerDamage cambiara de identidad entre renders,
+    el loop se cancelaría y reiniciaría constantemente.
+  - El loop de rAF solo depende de isGameActive para montarse/desmontarse.
+    Enemies y bullets se leen desde refs actualizados en cada render.
 */
-function usePlayerCollision(enemies, enemyBullets, planeRef, isGameActive, triggerDamage) {
-  const animationRef = useRef();
+function usePlayerCollision(
+  enemies,
+  enemyBullets,
+  planeRef,
+  isGameActive,
+  triggerDamage,
+  isImmuneRef,
+) {
+  const animationRef    = useRef();
+  const enemiesRef      = useRef(enemies);
+  const enemyBulletsRef = useRef(enemyBullets);
+  const triggerDamageRef = useRef(triggerDamage);
+
+  // Mantener refs siempre actualizados
+  useEffect(() => { enemiesRef.current      = enemies;       }, [enemies]);
+  useEffect(() => { enemyBulletsRef.current = enemyBullets;  }, [enemyBullets]);
+  useEffect(() => { triggerDamageRef.current = triggerDamage; }, [triggerDamage]);
 
   useEffect(() => {
-    if (!isGameActive) return;
+    if (!isGameActive) {
+      cancelAnimationFrame(animationRef.current);
+      return;
+    }
 
     const checkCollision = () => {
-      let damagedThisFrame = false;
       const plane = planeRef.current;
-      if (!plane) return;
+      if (!plane) {
+        animationRef.current = requestAnimationFrame(checkCollision);
+        return;
+      }
 
-      const px = parseInt(plane.style.left || '100') + 16;
-      const py = parseInt(plane.style.top || '200') + 16;
-      const pw = 66;
-      const ph = 66;
+      // Guard de inmunidad — sincrónico, nunca stale
+      if (isImmuneRef.current) {
+        animationRef.current = requestAnimationFrame(checkCollision);
+        return;
+      }
 
-      enemies.forEach((enemy) => {
-        if (damagedThisFrame) return;
+      const px = parseInt(plane.style.left || '100') + 24;
+      const py = parseInt(plane.style.top  || '200') + 26;
+      const pw = 52;
+      const ph = 50;
 
+      // Colisión con cuerpos de enemigos
+      for (const enemy of enemiesRef.current) {
         const hitbox = getEnemyHitbox(enemy);
-        if (!hitbox) return;
+        if (!hitbox) continue;
 
-        const overlap =
-          px < hitbox.x + hitbox.width &&
-          px + pw > hitbox.x &&
-          py < hitbox.y + hitbox.height &&
-          py + ph > hitbox.y;
-
-        if (overlap) {
-          triggerDamage();
-          damagedThisFrame = true;
+        if (
+          px      < hitbox.x + hitbox.width  &&
+          px + pw > hitbox.x                 &&
+          py      < hitbox.y + hitbox.height  &&
+          py + ph > hitbox.y
+        ) {
+          triggerDamageRef.current();
+          animationRef.current = requestAnimationFrame(checkCollision);
+          return;
         }
-      });
+      }
 
-      enemyBullets.forEach((bullet) => {  
-        if (damagedThisFrame) return;
-
+      // Colisión con balas enemigas
+      for (const bullet of enemyBulletsRef.current) {
         const hitbox = getEnemyHitbox(bullet);
-        if (!hitbox) return;
+        if (!hitbox) continue;
 
-        const overlap =
-          px < hitbox.x + hitbox.width &&
-          px + pw > hitbox.x &&
-          py < hitbox.y + hitbox.height &&
-          py + ph > hitbox.y;
-
-        if (overlap) {
-          triggerDamage();
-          damagedThisFrame = true;
+        if (
+          px      < hitbox.x + hitbox.width  &&
+          px + pw > hitbox.x                 &&
+          py      < hitbox.y + hitbox.height  &&
+          py + ph > hitbox.y
+        ) {
+          triggerDamageRef.current();
+          animationRef.current = requestAnimationFrame(checkCollision);
+          return;
         }
-      });
+      }
 
-    animationRef.current = requestAnimationFrame(checkCollision);
-  };
+      animationRef.current = requestAnimationFrame(checkCollision);
+    };
 
     animationRef.current = requestAnimationFrame(checkCollision);
     return () => cancelAnimationFrame(animationRef.current);
-  }, [enemies, isGameActive, planeRef, triggerDamage]);
+  }, [isGameActive]); // ← solo isGameActive: el loop nunca se reinicia innecesariamente
 }
 
 export default usePlayerCollision;

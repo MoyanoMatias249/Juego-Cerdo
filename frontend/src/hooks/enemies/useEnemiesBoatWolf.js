@@ -1,3 +1,4 @@
+// src/hooks/enemies/useEnemiesBoatWolf.js
 export function createBoatWolfEnemy() {
   const fromLeft = Math.random() < 0.5;
   const baseY = 360 + Math.random() * 30;
@@ -16,10 +17,11 @@ export function createBoatWolfEnemy() {
     phase: 'approach',
     targetX,
     shootCooldown: 0,
-    health: 20,
+    health: 15,
     points: 500,
     lifeTime: 0, 
     id: Math.random().toString(36).slice(2),
+    shoot: { active: false },
   };
 }
 
@@ -64,7 +66,7 @@ export function updateBoatWolfEnemy(enemy, playerX, playerY) {
       return {
         ...enemy,
         phase: 'shoot',
-        shoot: true,
+        shoot: { active: true },
         targetX: playerX,
         targetY: playerY,
         y: newY,
@@ -83,7 +85,7 @@ export function updateBoatWolfEnemy(enemy, playerX, playerY) {
   if (enemy.phase === 'shoot') {
     return {
       ...enemy,
-      shoot: false,
+      shoot: { active: false },
       shootCooldown: 90,
       phase: 'aim',
       y: newY,
