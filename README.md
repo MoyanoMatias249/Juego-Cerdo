@@ -1,2 +1,3 @@
-# Juego-Cerdo
-Juego de un aviones de un cerdito que debe enfrentarse a animales piratas
+# Pig to Heaven
+Juego donde un cerdo se enfrenta a un grupo de lobos piratas con su avioneta
+
